@@ -39,13 +39,16 @@ def recognize_api():
         return 'No filename'
 
     time = datetime.datetime.now()
-    with tempfile.NamedTemporaryFile() as temp_file:
-        recognizer = Recognizer()
-        filename = temp_file.name
-        file.save(filename)
-        text = recognizer.get_text(filename)
-        used = datetime.datetime.now() - time
-        return "Text reconegut: [{0}] - temps usat {1}".format(text, used)
+    try:
+        with tempfile.NamedTemporaryFile() as temp_file:
+            recognizer = Recognizer()
+            filename = temp_file.name
+            file.save(filename)
+            text = recognizer.get_text(filename)
+            used = datetime.datetime.now() - time
+            return "Text reconegut: [{0}] - temps usat {1}".format(text, used)
+    except ValueError as e:
+        return ("No és un fitxer d'àudio en format PCM WAV, AIFF/AIFF-C o FLAC ", 400)
 
 if __name__ == '__main__':
     app.debug = True
