@@ -19,6 +19,7 @@
 # Boston, MA 02111-1307, USA.
 
 import tempfile
+import datetime
 from flask import Flask, request
 from werkzeug.utils import secure_filename
 from recognizer import Recognizer
@@ -37,12 +38,14 @@ def recognize_api():
     if file.filename == '':
         return 'No filename'
 
+    time = datetime.datetime.now()
     with tempfile.NamedTemporaryFile() as temp_file:
         recognizer = Recognizer()
         filename = temp_file.name
         file.save(filename)
         text = recognizer.get_text(filename)
-        return "Text reconegut: [{0}]".format(text)
+        used = datetime.datetime.now() - time
+        return "Text reconegut: [{0}] - temps usat {1}".format(text, used)
 
 if __name__ == '__main__':
     app.debug = True
