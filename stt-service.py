@@ -20,9 +20,11 @@
 
 import tempfile
 import datetime
-from flask import Flask, request
+import json
+from flask import Flask, request, Response
 from werkzeug.utils import secure_filename
 from recognizer import Recognizer
+from usage import Usage
 
 app = Flask(__name__)
 
@@ -46,9 +48,27 @@ def recognize_api():
             file.save(filename)
             text = recognizer.get_text(filename)
             used = datetime.datetime.now() - time
+            usage = Usage()
+            usage.log()
             return "Text reconegut: [{0}] - temps usat {1}".format(text, used)
     except ValueError as e:
         return ("No és un fitxer d'àudio en format PCM WAV, AIFF/AIFF-C o FLAC ", 400)
+
+@app.route('/recognize/stats/', methods=['GET'])
+def stats():
+    requested = request.args.get('date')
+    date_requested = datetime.datetime.strptime(requested, '%Y-%m-%d')
+    usage = Usage()
+    calls = usage.get_stats(date_requested)
+
+    result = {}
+    result['calls'] = calls
+    return json_answer(json.dumps(result, indent=4, separators=(',', ': ')))
+
+def json_answer(data):
+    resp = Response(data, mimetype='application/json')
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 if __name__ == '__main__':
     app.debug = True
